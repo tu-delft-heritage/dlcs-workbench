@@ -1,18 +1,18 @@
 ## DLCS Workbench
 
-This repository contains scripts for ingesting files in Digirati's [Digital Library Cloud Services](https://iiif-cloud.digirati.com/) (DLCS). The DLCS is used as a [IIIF](https://iiif.io/) Server for hosting images presented on [heritage.tudelft.nl/](https://heritage.tudelft.nl/) and other applications. These scripts are used for adding new images to the server and manupulating existing records using the [DLCS API](https://dlcs-book.readthedocs.io/en/latest/API_Reference/introduction.html).
+This repository contains scripts for ingesting files in Digirati's [Digital Library Cloud Services](https://iiif-cloud.digirati.com/) (DLCS). The DLCS is used as a [IIIF](https://iiif.io/) Server for hosting images presented on [heritage.tudelft.nl](https://heritage.tudelft.nl/) and other applications. These scripts are used for adding new images to the server and manupulating existing records using the [DLCS API](https://dlcs-book.readthedocs.io/en/latest/API_Reference/introduction.html).
 
 ## Get started
 
 First install [Bun](https://bun.sh/).
 
-To install dependencies run the following commands in the root of the repository:
+To install dependencies run the following command in the root of the repository:
 
 ```bash
 bun install
 ```
 
-## Set environment variables
+## Setting environment variables
 
 The following environment variables need to be set:
 
@@ -33,7 +33,7 @@ _This will only work on the TU Delft network or with an active [eduVPN](https://
 bun src/webdav.ts [path] --options
 ```
 
-Will write output file in `_data/` folder.
+Will write output file to the `_data/` folder.
 
 Options:
 - `--space [number]` DLCS space to use. Defaults to `16` (test).
@@ -52,7 +52,7 @@ Options:
 
 You might want to base the values for `string1`, `string2` and/or `string3` on segments of the file path, such as the filename or a subfolder. This is possible by providing a [regex pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions) and using named groups. Example:
 
-Example path: `/staff-umbrella/digitalcollections/library/magazijn/oclc-72677405-delta/delta/tif/1983/01`
+Path: `/staff-umbrella/digitalcollections/library/magazijn/oclc-72677405-delta/delta/tif/1983/01`
 
 Regex pattern: `\/delta\/tif\/(?<string2>\d{4})\/(?<string3>\d{2})`
 
