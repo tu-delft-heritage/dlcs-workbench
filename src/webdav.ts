@@ -6,16 +6,40 @@ import { v4 } from "uuid";
 const { values, positionals } = parseArgs({
   args: Bun.argv,
   options: {
+    "include-directories": {
+      type: "boolean",
+    },
     filter: {
       type: "string",
     },
-    ingest: {
+    recursive: {
+      type: "boolean",
+    },
+    // depth: {
+    //   type: "boolean",
+    // },
+    raw: {
       type: "boolean",
     },
     space: {
       type: "string",
     },
-    number: {
+    regex: {
+      type: "string",
+    },
+    string1: {
+      type: "string",
+    },
+    string2: {
+      type: "string",
+    },
+    string3: {
+      type: "string",
+    },
+    number1: {
+      type: "string",
+    },
+    output: {
       type: "string",
     },
   },
@@ -23,7 +47,8 @@ const { values, positionals } = parseArgs({
   allowPositionals: true,
 });
 
-const path = positionals[2];
+// Remove trailing backslash from path if present
+const path = positionals[2].replace(/\/$/, "");
 
 if (!path) {
   throw new Error("Please submit a path");
@@ -63,6 +88,10 @@ export let listSurfDriveFolder = async () => {
 //   "https://surfdrive.surf.nl/files/remote.php/dav/public-files/TVGDtHcBuhkXg5l"
 // );
 
+if (!Bun.env.WEBDAV_USER || !Bun.env.WEBDAV_USER) {
+  throw new Error("Please set environment variables")
+}
+
 const client = createClient("https://webdata.tudelft.nl", {
   username: Bun.env.WEBDAV_USER,
   password: Bun.env.WEBDAV_PASS,
@@ -78,10 +107,12 @@ const fullListing = async (path: string) => {
   const initialListing = await client.getDirectoryContents(path);
   if (Array.isArray(initialListing)) {
     arr.push(...initialListing);
-    for (const item of initialListing) {
-      if (item.type === "directory") {
-        const recursiveListing = await fullListing(item.filename);
-        arr.push(recursiveListing);
+    if (values.recursive) {
+      for (const item of initialListing) {
+        if (item.type === "directory") {
+          const recursiveListing = await fullListing(item.filename);
+          arr.push(recursiveListing);
+        }
       }
     }
   }
@@ -96,35 +127,50 @@ const mimeTypes = {
   mp4: "video/mp4",
 };
 
+// Only include files
+if (!values.raw && !values["include-directories"]) {
+  resp = resp.filter(i => i.type === "file")
+}
+
+// Only include certain files based on filter
 if (values.filter) {
   const filter = mimeTypes[values.filter] || values.filter;
   resp = resp.filter((i) => i.mime === filter);
-  if (!resp.length) {
-    throw new Error("Filter returned zero items");
-  }
 }
 
 let ingestCollection = undefined;
 
-if (values.ingest && values.space) {
-  const firstNumber = values.number ? +values.number : 0;
+if (!resp.length) {
+  throw new Error("Collection contains zero items");
+}
+
+let pattern = values.regex ? new RegExp(values.regex) : undefined
+
+if (!values.raw) {
+  const firstNumber = values.number1 ? +values.number1 : 0;
   ingestCollection = {
     "@type": "Collection",
-    member: resp.map((item, index) => ({
-      id: v4(),
-      space: values.space,
-      origin: "sftp://sftp.tudelft.nl".concat(item.filename),
-      // string1: determineString(metadata.string1, item.path),
-      // string2: determineString(metadata.string2, item.path),
-      // string3: determineString(metadata.string3, item.path),
-      number1: firstNumber + index,
-    })),
+    member: resp.map((item, index) => {
+      const matches = pattern ? item.filename.match(pattern) : undefined
+      if (!matches) {
+        console.log(`No regex matches for: ${item.filename}`)
+      }
+      return ({
+        id: v4(),
+        space: values.space || 16,
+        origin: "sftp://sftp.tudelft.nl".concat(item.filename),
+        string1: matches?.groups?.string1 || values.string1 || "",
+        string2: matches?.groups?.string2 || values.string2 || "",
+        string3: matches?.groups?.string3 || values.string3 || "",
+        number1: firstNumber + index,
+      })
+    }),
   };
 }
 
 // Todo: create batches
 
-const filename = path
+const filename = values.output || path
   .toLowerCase()
   .split("/")
   .slice(-1)[0]
@@ -132,11 +178,11 @@ const filename = path
 
 if (ingestCollection) {
   await Bun.write(
-    `output/${filename}-ingest.json`,
+    `_data/${filename}-ingest.json`,
     JSON.stringify(ingestCollection, null, 4)
   );
   console.log(`Written output/${filename}-ingest.json`);
 } else {
-  await Bun.write(`output/${filename}.json`, JSON.stringify(resp, null, 4));
+  await Bun.write(`_data/${filename}.json`, JSON.stringify(resp, null, 4));
   console.log(`Written output/${filename}.json`);
 }

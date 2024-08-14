@@ -2,6 +2,10 @@ import { fetchJson } from "./src/utils";
 import { encode } from "base-64";
 import type { paths } from "./src/types/dlcs";
 
+if (!Bun.env.DLCS_API_KEY || !Bun.env.DLCS_CUSTOMER_ID) {
+  throw new Error("Please set environment variables")
+}
+
 const apiBaseUrl = `https://api.dlc.services/customers/${Bun.env.DLCS_CUSTOMER_ID}/`;
 
 function apiCall(options) {
