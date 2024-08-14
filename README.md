@@ -54,7 +54,7 @@ You might want to base the values for `string1`, `string2` and/or `string3` on s
 
 Path: `/staff-umbrella/digitalcollections/library/magazijn/oclc-72677405-delta/delta/tif/1983/01`
 
-Regex pattern: `\/delta\/tif\/(?<string2>\d{4})\/(?<string3>\d{2})`
+Regex pattern: `\/delta\/tif\/(?<string2>.*?)\/(?<string3>.*?)`
 
 Command:
 
@@ -63,8 +63,8 @@ bun src/webdav.ts /staff-umbrella/digitalcollections/library/magazijn/oclc-72677
     --recursive \
     --output delta \
     --filter tif \
-    --regex "\/delta\/tif\/(?<string2>\d{4})\/(?<string3>\d{2})" # No forward slashes! \
-    --string1 delta     # Used for all string1 values \
+    --regex "\/delta\/tif\/(?<string2>.*?)\/(?<string3>.*?)\/" \
+    --string1 delta
 ```
 
 The script will list files for which no matches were found. If values for `string1`, `string2` and `string3` were provided as part of the options, those have been used instead.
