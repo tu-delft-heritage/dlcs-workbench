@@ -25,7 +25,7 @@ WEBDAV_PASS=
 
 You can do this by adding a `.env` file to the root of the repository and adding the lines above with the corresponding values after `=`.
 
-### Webdav to DLCS ingest collection
+## Webdav to DLCS ingest collection
 
 _This will only work on the TU Delft network or with an active [eduVPN](https://www.eduvpn.org/client-apps/) connection._
 
@@ -48,7 +48,7 @@ Options:
 - `--number1 [value]` Initial value for number1 field. Defaults to `0`.
 - `--output [filename]` Filename for output (without extension). Defaults to upper folder name.
 
-#### Regex patterns
+### Regex patterns
 
 You might want to base the values for `string1`, `string2` and/or `string3` on segments of the file path, such as the filename or a subfolder. This is possible by providing a [regex pattern](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions) and using named groups. Example:
 
