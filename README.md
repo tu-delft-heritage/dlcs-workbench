@@ -47,6 +47,7 @@ Options:
 - `--string3 [value]` Value for string3 field.
 - `--number1 [value]` Initial value for number1 field. Defaults to `0`.
 - `--output [filename]` Filename for output (without extension). Defaults to upper folder name.
+- `--batches` Create separate files with batches of max 1000 items.
 
 ### Regex patterns
 

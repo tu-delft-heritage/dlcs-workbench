@@ -2,6 +2,10 @@ import { XMLParser } from "fast-xml-parser";
 import { createClient } from "webdav";
 import { parseArgs } from "util";
 import { v4 } from "uuid";
+import type { components } from "./types/dlcs";
+
+type HydraCollection = components["schemas"]["ImageHydraCollection"]
+type HydraCollectionMembers = components["schemas"]["Image"][]
 
 const { values, positionals } = parseArgs({
   args: Bun.argv,
@@ -42,12 +46,15 @@ const { values, positionals } = parseArgs({
     output: {
       type: "string",
     },
+    batches: {
+      type: "boolean",
+    },
   },
   strict: true,
   allowPositionals: true,
 });
 
-// Remove trailing backslash from path if present
+// Remove trailing slash from path if present
 const path = positionals[2].replace(/\/$/, "");
 
 if (!path) {
@@ -138,37 +145,54 @@ if (values.filter) {
   resp = resp.filter((i) => i.mime === filter);
 }
 
-let ingestCollection = undefined;
-
 if (!resp.length) {
   throw new Error("Collection contains zero items");
 }
+
+let ingestImages: undefined | HydraCollectionMembers = undefined;
 
 let pattern = values.regex ? new RegExp(values.regex) : undefined
 
 if (!values.raw) {
   const firstNumber = values.number1 ? +values.number1 : 0;
-  ingestCollection = {
-    "@type": "Collection",
-    member: resp.map((item, index) => {
-      const matches = pattern ? item.filename.match(pattern) : undefined
-      if (!matches) {
-        console.log(`No regex matches for: ${item.filename}`)
-      }
-      return ({
-        id: v4(),
-        space: values.space || 16,
-        origin: "sftp://sftp.tudelft.nl".concat(item.filename),
-        string1: matches?.groups?.string1 || values.string1 || "",
-        string2: matches?.groups?.string2 || values.string2 || "",
-        string3: matches?.groups?.string3 || values.string3 || "",
-        number1: firstNumber + index,
-      })
-    }),
-  };
+  ingestImages = resp.map((item, index) => {
+    const matches = pattern ? item.filename.match(pattern) : undefined
+    if (!matches) {
+      console.log(`No regex matches for: ${item.filename}`)
+    }
+    return ({
+      id: v4(),
+      space: values.space ? +values.space : 16,
+      origin: "sftp://sftp.tudelft.nl".concat(item.filename),
+      string1: matches?.groups?.string1 || values.string1 || "",
+      string2: matches?.groups?.string2 || values.string2 || "",
+      string3: matches?.groups?.string3 || values.string3 || "",
+      number1: firstNumber + index,
+    })
+  })
 }
 
-// Todo: create batches
+// Create batches
+const chunkSize = 1000
+
+const createChunks = (arr: any[]) => {
+  let chunks = new Array();
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    const chunk = arr.slice(i, i + chunkSize);
+    chunks.push(chunk);
+  }
+  return chunks;
+}
+
+const makeIngestCollection = (members: HydraCollectionMembers) => {
+  return {
+    "@context": "http://www.w3.org/ns/hydra/context.jsonld",
+    "@type": "Collection",
+    member: members
+  }
+}
+
+const outputFolder = "_data"
 
 const filename = values.output || path
   .toLowerCase()
@@ -176,13 +200,34 @@ const filename = values.output || path
   .slice(-1)[0]
   .replaceAll(" ", "-");
 
-if (ingestCollection) {
+const writeFile = async (file: any, filename: string) => {
   await Bun.write(
-    `_data/${filename}-ingest.json`,
-    JSON.stringify(ingestCollection, null, 4)
-  );
-  console.log(`Written output/${filename}-ingest.json`);
+    `${outputFolder}/${filename}.json`,
+    JSON.stringify(file, null, 4)
+  )
+  console.log(`Written ${outputFolder}/${filename}.json`)
+}
+
+if (values.batches) {
+  if (ingestImages) {
+    const chunks = createChunks(ingestImages)
+    for (const [index, chunk] of chunks.entries()) {
+      const ingestCollection = makeIngestCollection(chunk)
+      const batch = index.toString().padStart(2, '0')
+      writeFile(ingestCollection, `${filename}-ingest-batch-${batch}`)
+    }
+  } else {
+    // Write raw webdav output in batches
+    const chunks = createChunks(resp)
+    for (const [index, chunk] of chunks.entries()) {
+      const batch = index.toString().padStart(2, '0')
+      writeFile(chunk, `${filename}-webdav-batch-${batch}`)
+    }
+  }
+} else if (ingestImages) {
+  const ingestCollection = makeIngestCollection(ingestImages)
+  writeFile(ingestCollection, `${filename}-ingest`)
 } else {
-  await Bun.write(`_data/${filename}.json`, JSON.stringify(resp, null, 4));
-  console.log(`Written output/${filename}.json`);
+  // Write raw webdav output
+  writeFile(resp, `${filename}-webdav`)
 }
