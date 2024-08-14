@@ -1,0 +1,23 @@
+{
+  "name": "dlcs-workbench",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@iiif/helpers": "^1.2.18",
+    "@iiif/parser": "^2.1.3",
+    "base-64": "^1.0.0",
+    "bun-promptx": "^0.2.0",
+    "fast-xml-parser": "^4.4.1",
+    "js-yaml": "^4.1.0",
+    "openapi-fetch": "^0.9.5",
+    "openapi-typescript": "^6.7.5",
+    "uuid": "^10.0.0",
+    "webdav": "^5.7.1"
+  }
+}
