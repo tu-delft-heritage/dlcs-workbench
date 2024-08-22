@@ -1,12 +1,19 @@
 import { XMLParser } from "fast-xml-parser";
 import { createClient } from "webdav";
 import { parseArgs } from "util";
+import { writeFile } from "./utils"
 import { v4 } from "uuid";
 import type { components } from "./types/dlcs";
+
+// Check for environment variables
+if (!Bun.env.WEBDAV_USER || !Bun.env.WEBDAV_PASS) {
+  throw new Error("Please set environment variables")
+}
 
 type HydraCollection = components["schemas"]["ImageHydraCollection"]
 type HydraCollectionMembers = components["schemas"]["Image"][]
 
+// Parse input
 const { values, positionals } = parseArgs({
   args: Bun.argv,
   options: {
@@ -199,14 +206,6 @@ const filename = values.output || path
   .split("/")
   .slice(-1)[0]
   .replaceAll(" ", "-");
-
-const writeFile = async (file: any, filename: string) => {
-  await Bun.write(
-    `${outputFolder}/${filename}.json`,
-    JSON.stringify(file, null, 4)
-  )
-  console.log(`Written ${outputFolder}/${filename}.json`)
-}
 
 if (values.batches) {
   if (ingestImages) {

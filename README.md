@@ -70,6 +70,23 @@ bun src/webdav.ts /staff-umbrella/digitalcollections/library/magazijn/oclc-72677
 
 The script will list files for which no matches were found. If values for `string1`, `string2` and `string3` were provided as part of the options, those have been used instead.
 
+## DLCS operations
+
+```bash
+bun src/dlcs.ts [path(s) to files] --options
+```
+
+Options:
+- `list-spaces` List the available spaces. Output to console.
+- `list-images [space]` List the images in the provided space. Will write output file to `_data folder`
+- `full` List all the images in the space. To be used with `list-images`
+- `string1 [value]` Query the selected space for images with the provided value for `string1`. To be used with `list-images`.
+- `string2 [value]` Query the selected space for images with the provided value for `string2`. To be used with `list-images`.
+- `string3 [value]` Query the selected space for images with the provided value for `string3`. To be used with `list-images`.
+- `ingest` Ingest the input collection(s). Will return the batch URL.
+- `delete` Delete the images in the input collection(s).
+- `patch` Patch the `string1`, `string2`, `string3`, `number1`, `number2`, `number3` fields of the images in the input collection(s).
+
 ---
 
 This project was created using `bun init` in bun v1.0.23. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
