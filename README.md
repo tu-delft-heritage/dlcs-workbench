@@ -25,6 +25,10 @@ WEBDAV_PASS=
 
 You can do this by adding a `.env` file to the root of the repository and adding the lines above with the corresponding values after `=`.
 
+## Settings
+
+Additional settings can be customized in the `settings.json` file in the root of the repository.
+
 ## Webdav to DLCS ingest collection
 
 _This will only work on the TU Delft network or with an active [eduVPN](https://www.eduvpn.org/client-apps/) connection._
@@ -65,7 +69,9 @@ bun src/webdav.ts /staff-umbrella/digitalcollections/library/magazijn/oclc-72677
     --output delta \
     --filter tif \
     --regex "\/delta\/tif\/(?<string2>.*?)\/(?<string3>.*?)\/" \
-    --string1 delta
+    --space 29 \
+    --string1 delta \
+    --batches
 ```
 
 The script will list files for which no matches were found. If values for `string1`, `string2` and `string3` were provided as part of the options, those have been used instead.
@@ -77,15 +83,16 @@ bun src/dlcs.ts [path(s) to files] --options
 ```
 
 Options:
-- `list-spaces` List the available spaces. Output to console.
-- `list-images [space]` List the images in the provided space. Will write output file to `_data folder`
-- `full` List all the images in the space. To be used with `list-images`
-- `string1 [value]` Query the selected space for images with the provided value for `string1`. To be used with `list-images`.
-- `string2 [value]` Query the selected space for images with the provided value for `string2`. To be used with `list-images`.
-- `string3 [value]` Query the selected space for images with the provided value for `string3`. To be used with `list-images`.
-- `ingest` Ingest the input collection(s). Will return the batch URL.
-- `delete` Delete the images in the input collection(s).
-- `patch` Patch the `string1`, `string2`, `string3`, `number1`, `number2`, `number3` fields of the images in the input collection(s).
+- `--list-spaces` List the available spaces. Output to console.
+- `--list-images [space]` List the images in the provided space. Will write output file to `_data` folder.
+- `--full` List all the images in the space. To be used with `--list-images`
+- `--string1 [value]` Query the selected space for images with the provided value for `string1`. To be used with `list-images`.
+- `--string2 [value]` Query the selected space for images with the provided value for `string2`. To be used with `list-images`.
+- `--string3 [value]` Query the selected space for images with the provided value for `string3`. To be used with `list-images`.
+- `--ingest` Ingests the input collection(s). Returns the batch URL(s).
+- `--batches` Creates batches when the ingest collection is too large. To be used with `--ingest`
+- `--delete` Deletes the images in the input collection(s).
+- `--patch` Patches the `string1`, `string2`, `string3`, `number1`, `number2`, `number3` fields of the images in the input collection(s).
 
 ---
 

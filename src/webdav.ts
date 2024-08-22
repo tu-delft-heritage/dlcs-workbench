@@ -1,9 +1,14 @@
 import { XMLParser } from "fast-xml-parser";
 import { createClient } from "webdav";
 import { parseArgs } from "util";
-import { writeFile } from "./utils"
+import { writeFile, makeHydraCollection, closeProcess, makeChunks } from "./utils"
 import { v4 } from "uuid";
+import settings from "../settings.json"
 import type { components } from "./types/dlcs";
+
+// Listen for CTRL+C
+// https://bun.sh/guides/process/ctrl-c
+closeProcess()
 
 // Check for environment variables
 if (!Bun.env.WEBDAV_USER || !Bun.env.WEBDAV_PASS) {
@@ -62,7 +67,7 @@ const { values, positionals } = parseArgs({
 });
 
 // Remove trailing slash from path if present
-const path = positionals[2].replace(/\/$/, "");
+const path = positionals.length > 2 ? positionals[2].replace(/\/$/, "") : undefined
 
 if (!path) {
   throw new Error("Please submit a path");
@@ -118,7 +123,10 @@ const client = createClient("https://webdata.tudelft.nl", {
 const fullListing = async (path: string) => {
   const arr = new Array();
   console.log("Listing: " + path);
+  const timeoutHandler = () => { console.error("This takes very long; do you have an active VPN connection?") }
+  const timeoutID = setTimeout(timeoutHandler, 20000)
   const initialListing = await client.getDirectoryContents(path);
+  clearTimeout(timeoutID)
   if (Array.isArray(initialListing)) {
     arr.push(...initialListing);
     if (values.recursive) {
@@ -135,12 +143,6 @@ const fullListing = async (path: string) => {
 
 let resp = await fullListing(path);
 
-const mimeTypes = {
-  tif: "image/tiff",
-  jpg: "image/jpeg",
-  mp4: "video/mp4",
-};
-
 // Only include files
 if (!values.raw && !values["include-directories"]) {
   resp = resp.filter(i => i.type === "file")
@@ -148,6 +150,7 @@ if (!values.raw && !values["include-directories"]) {
 
 // Only include certain files based on filter
 if (values.filter) {
+  const mimeTypes = settings.mimeTypes
   const filter = mimeTypes[values.filter] || values.filter;
   resp = resp.filter((i) => i.mime === filter);
 }
@@ -163,13 +166,17 @@ let pattern = values.regex ? new RegExp(values.regex) : undefined
 if (!values.raw) {
   const firstNumber = values.number1 ? +values.number1 : 0;
   ingestImages = resp.map((item, index) => {
-    const matches = pattern ? item.filename.match(pattern) : undefined
-    if (!matches) {
-      console.log(`No regex matches for: ${item.filename}`)
+    // Maybe use https://github.com/phenax/typed-regex
+    let matches: undefined | any = undefined
+    if (pattern) {
+      matches = item.filename.match(pattern)
+      if (!matches) {
+        console.log(`No regex matches for: ${item.filename}`)
+      }
     }
     return ({
       id: v4(),
-      space: values.space ? +values.space : 16,
+      space: values.space ? +values.space : settings["default-space"],
       origin: "sftp://sftp.tudelft.nl".concat(item.filename),
       string1: matches?.groups?.string1 || values.string1 || "",
       string2: matches?.groups?.string2 || values.string2 || "",
@@ -179,28 +186,6 @@ if (!values.raw) {
   })
 }
 
-// Create batches
-const chunkSize = 1000
-
-const createChunks = (arr: any[]) => {
-  let chunks = new Array();
-  for (let i = 0; i < arr.length; i += chunkSize) {
-    const chunk = arr.slice(i, i + chunkSize);
-    chunks.push(chunk);
-  }
-  return chunks;
-}
-
-const makeIngestCollection = (members: HydraCollectionMembers) => {
-  return {
-    "@context": "http://www.w3.org/ns/hydra/context.jsonld",
-    "@type": "Collection",
-    member: members
-  }
-}
-
-const outputFolder = "_data"
-
 const filename = values.output || path
   .toLowerCase()
   .split("/")
@@ -209,22 +194,22 @@ const filename = values.output || path
 
 if (values.batches) {
   if (ingestImages) {
-    const chunks = createChunks(ingestImages)
+    const chunks = makeChunks(ingestImages)
     for (const [index, chunk] of chunks.entries()) {
-      const ingestCollection = makeIngestCollection(chunk)
+      const ingestCollection = makeHydraCollection(chunk)
       const batch = index.toString().padStart(2, '0')
       writeFile(ingestCollection, `${filename}-ingest-batch-${batch}`)
     }
   } else {
     // Write raw webdav output in batches
-    const chunks = createChunks(resp)
+    const chunks = makeChunks(resp)
     for (const [index, chunk] of chunks.entries()) {
       const batch = index.toString().padStart(2, '0')
       writeFile(chunk, `${filename}-webdav-batch-${batch}`)
     }
   }
 } else if (ingestImages) {
-  const ingestCollection = makeIngestCollection(ingestImages)
+  const ingestCollection = makeHydraCollection(ingestImages)
   writeFile(ingestCollection, `${filename}-ingest`)
 } else {
   // Write raw webdav output

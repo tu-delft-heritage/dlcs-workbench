@@ -1,4 +1,11 @@
 {
     "dlcs-customer-id": 7,
-    "output-directory": "_data"
+    "output-directory": "_data",
+    "default-space": 16,
+    "batch-size": 1000,
+    "mimeTypes": {
+        "tif": "image/tiff",
+        "jpg": "image/jpeg",
+        "mp4": "video/mp4"
+    }
 }
