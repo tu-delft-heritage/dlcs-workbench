@@ -34,10 +34,10 @@ Additional settings can be customized in the `settings.json` file in the root of
 _This will only work on the TU Delft network or with an active [eduVPN](https://www.eduvpn.org/client-apps/) connection._
 
 ```bash
-bun src/webdav.ts [path] --options
+bun webdav [path] --options
 ```
 
-Will write output file to the `_data/` folder.
+Will write output file to the `_data` folder.
 
 Options:
 - `--space [number]` DLCS space to use. Defaults to `16` (test).
@@ -64,7 +64,7 @@ Regex pattern: `\/delta\/tif\/(?<string2>.*?)\/(?<string3>.*?)`
 Command:
 
 ```bash
-bun src/webdav.ts /staff-umbrella/digitalcollections/library/magazijn/oclc-72677405-delta/delta/tif \
+bun webdav /staff-umbrella/digitalcollections/library/magazijn/oclc-72677405-delta/delta/tif \
     --recursive \
     --output delta \
     --filter tif \
@@ -79,7 +79,7 @@ The script will list files for which no matches were found. If values for `strin
 ## DLCS operations
 
 ```bash
-bun src/dlcs.ts [path(s) to files] --options
+bun dlcs [file(s)] --options
 ```
 
 Options:
@@ -93,6 +93,32 @@ Options:
 - `--batches` Creates batches when the ingest collection is too large. To be used with `--ingest`
 - `--delete` Deletes the images in the input collection(s).
 - `--patch` Patches the `string1`, `string2`, `string3`, `number1`, `number2`, `number3` fields of the images in the input collection(s).
+
+## SURFdrive sync
+
+Script to synchronise a SURFdrive folder with a DLCS space using WebDAV.
+
+```bash
+bun sync [config.json]
+```
+
+The config file needs to be in the `_sync` folder and of the following format:
+
+```json
+{
+    "name": "", // Name for this sync
+    "shareToken": "", // Token at the end of a shared folder link
+    "password": "", // Shared folder password (optional)
+    "space": "", // DLCS space to use
+    "string1": "" // string1 value to use for all images
+}
+```
+
+## Todo
+
+- Improve types
+- Register default password in DLCS for shared SURFdrive folders
+- Add notes on batches
 
 ---
 

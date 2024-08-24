@@ -1,11 +1,17 @@
 {
-    "dlcs-customer-id": 7,
-    "output-directory": "_data",
-    "default-space": 16,
-    "batch-size": 1000,
+    "data-directory": "_data",
     "mimeTypes": {
         "tif": "image/tiff",
         "jpg": "image/jpeg",
         "mp4": "video/mp4"
+    },
+    "dlcs": {
+        "customer-id": 7,
+        "default-space": 16,
+        "batch-size": 100
+    },
+    "surfdrive": {
+        "webdav": "https://surfdrive.surf.nl/files/remote.php/dav/public-files/",
+        "default-user": "public"
     }
 }

@@ -1,13 +1,11 @@
-import { XMLParser } from "fast-xml-parser";
 import { createClient } from "webdav";
 import { parseArgs } from "util";
-import { writeFile, makeHydraCollection, closeProcess, makeChunks } from "./utils"
+import { writeFile, makeHydraCollection, closeProcess, makeChunks, webDavListing } from "./shared"
 import { v4 } from "uuid";
 import settings from "../settings.json"
+
 import type { components } from "./types/dlcs";
 
-// Listen for CTRL+C
-// https://bun.sh/guides/process/ctrl-c
 closeProcess()
 
 // Check for environment variables
@@ -73,75 +71,14 @@ if (!path) {
   throw new Error("Please submit a path");
 }
 
-export let listSurfDriveFolder = async () => {
-  // Listing files in cloud folder using webdav protocol
-  const parser = new XMLParser();
-  const url =
-    "https://surfdrive.surf.nl/files/remote.php/dav/public-files/TVGDtHcBuhkXg5l";
-  const response = await fetch(url, {
-    method: "PROPFIND",
-    headers: new Headers({
-      ["Content-Type"]: "application/xml; charset=UTF-8",
-      Depth: "2",
-    }),
-  }).then((response) => response.text());
-  const json = parser.parse(response);
-  // Creating a readable json of the response
-  const fileArray = json["d:multistatus"]["d:response"]
-    .filter((item) => !item["d:href"].match(/\/$/))
-    .map((item, index) => ({
-      path: "https://surfdrive.surf.nl" + item["d:href"],
-      filename: item["d:href"].match(/[^/]*$/)[0],
-      folder: item["d:href"].match(/TVGDtHcBuhkXg5l\/(.*)\//)
-        ? item["d:href"].match(/TVGDtHcBuhkXg5l\/(.*)\//)[1]
-        : "",
-      id: item["d:propstat"]["d:prop"]["d:getetag"].replace(/\"/g, ""),
-      type: item["d:propstat"]["d:prop"]["d:getcontenttype"],
-      modified: item["d:propstat"]["d:prop"]["d:getlastmodified"],
-      index,
-    }));
-  return fileArray;
-};
-
-// const sdClient = createClient(
-//   "https://surfdrive.surf.nl/files/remote.php/dav/public-files/TVGDtHcBuhkXg5l"
-// );
-
-if (!Bun.env.WEBDAV_USER || !Bun.env.WEBDAV_USER) {
-  throw new Error("Please set environment variables")
-}
-
 const client = createClient("https://webdata.tudelft.nl", {
   username: Bun.env.WEBDAV_USER,
   password: Bun.env.WEBDAV_PASS,
 });
 
-// PROPFIND not allowed on TU Delft server and "unlimited" depth not allowed on public SURFdrive folder
-// Alternative depths cannot be (easily) customized with webdav library
-// Using recursive function to list subdirectories
+const recursive = values.recursive ? true : false
 
-const fullListing = async (path: string) => {
-  const arr = new Array();
-  console.log("Listing: " + path);
-  const timeoutHandler = () => { console.error("This takes very long; do you have an active VPN connection?") }
-  const timeoutID = setTimeout(timeoutHandler, 20000)
-  const initialListing = await client.getDirectoryContents(path);
-  clearTimeout(timeoutID)
-  if (Array.isArray(initialListing)) {
-    arr.push(...initialListing);
-    if (values.recursive) {
-      for (const item of initialListing) {
-        if (item.type === "directory") {
-          const recursiveListing = await fullListing(item.filename);
-          arr.push(recursiveListing);
-        }
-      }
-    }
-  }
-  return arr.flat().sort((a, b) => a.filename.localeCompare(b.filename));
-};
-
-let resp = await fullListing(path);
+let resp = await webDavListing(client, path, recursive);
 
 // Only include files
 if (!values.raw && !values["include-directories"]) {
@@ -176,7 +113,7 @@ if (!values.raw) {
     }
     return ({
       id: v4(),
-      space: values.space ? +values.space : settings["default-space"],
+      space: values.space ? +values.space : settings.dlcs["default-space"],
       origin: "sftp://sftp.tudelft.nl".concat(item.filename),
       string1: matches?.groups?.string1 || values.string1 || "",
       string2: matches?.groups?.string2 || values.string2 || "",
