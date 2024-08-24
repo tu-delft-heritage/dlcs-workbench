@@ -114,8 +114,17 @@ The config file needs to be in the `_sync` folder and of the following format:
 }
 ```
 
+## Convert
+
+Convert from json to csv
+
+```
+bun convert [input.json|csv]
+```
+
 ## Todo
 
+- More documentation
 - Improve types
 - Register default password in DLCS for shared SURFdrive folders
 - Add notes on batches
