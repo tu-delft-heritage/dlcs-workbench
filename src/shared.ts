@@ -94,7 +94,7 @@ export const listSpace = async (space: string, full: boolean = false, query: str
     console.log("Multiple pages found...")
     const numberOfPages = firstPage.view.totalPages
     for (let page = 2; page <= numberOfPages; page++) {
-      const resp = await dlcsApiCall(`spaces/${space}/images?page=${page + query}`)
+      const resp = await dlcsApiCall(`spaces/${space}/images?page=${page}${query}`)
       members.push(resp.member);
       console.log(`Listing page ${page}...`)
     }
@@ -112,8 +112,12 @@ const postCollection = async (body: any) => {
   const method = "POST"
   const path = "queue"
   const resp = await dlcsApiCall(path, method, body)
-  const batch = resp["@id"].match(/batches\/(\w*)/)[1];
-  console.log(`https://portal.dlc.services/batches/${batch}`)
+  return resp
+}
+
+const getPortalUrl = (batchResp) => {
+  const id = batchResp["@id"].match(/batches\/(\w*)/)[1];
+  return `https://portal.dlc.services/batches/${id}`
 }
 
 export const ingestImages = async (body: any, batches: boolean = false) => {
@@ -125,12 +129,18 @@ export const ingestImages = async (body: any, batches: boolean = false) => {
     }
     const chunks = makeChunks(body.member)
     console.log(`${count} images are added to the queue in ${chunks.length} batches...`)
+    const ingestedBatches = new Array()
     for (const chunk of chunks) {
       const chunkBody = makeHydraCollection(chunk)
-      await postCollection(chunkBody)
+      const batch = await postCollection(chunkBody)
+      console.log(getPortalUrl(batch))
+      ingestedBatches.push(batch)
     }
+    return ingestedBatches
   } else {
-    await postCollection(body)
+    const batch = await postCollection(body)
+    console.log(getPortalUrl(batch))
+    return [batch]
   }
 }
 

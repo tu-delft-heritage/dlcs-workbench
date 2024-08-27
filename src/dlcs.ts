@@ -20,6 +20,9 @@ const { values, positionals } = parseArgs({
     "list-spaces": {
       type: "boolean",
     },
+    "list-batches": {
+      type: "boolean",
+    },
     "list-images": {
       type: "string",
     },
@@ -56,7 +59,7 @@ const { values, positionals } = parseArgs({
 const inputArray = await Promise.all(positionals.slice(2).map(file => Bun.file(settings["data-directory"] + "/" + file).json().then(data => ({ file, data }))))
 
 // Checking flags
-const flags = [values.ingest, values.patch, values.delete, values["list-spaces"], values["list-images"]].filter(flag => flag)
+const flags = [values.ingest, values.patch, values.delete, values["list-spaces"], values["list-images"], values["list-batches"]].filter(flag => flag)
 const requiredInput = values.ingest || values.patch || values.delete
 
 if (flags.length > 1) {
@@ -101,6 +104,17 @@ if (values["list-spaces"]) {
   console.log(`${resp.totalItems} spaces found\n\n${header}\n${table}`)
 }
 
+// List batches
+if (values["list-batches"]) {
+  const resp = await dlcsApiCall("queue/batches")
+  // Load batch:
+  // https://api.dlc.services/customers/7/queue/batches/[batchId]
+  // Check batch.error count > 0
+  // Load failed images:
+  // https://api.dlc.services/customers/7/queue/batches/[batchId]/errorImages
+  console.log(resp)
+}
+
 // List images within space
 if (values["list-images"]) {
   const space = values["list-images"]
@@ -121,7 +135,8 @@ if (values.ingest) {
     const body = collection.data
     const count = body.member.length
     const batches = values.batches
-    await ingestImages(body, batches)
+    const resp = await ingestImages(body, batches)
+    await writeFile(makeHydraCollection(resp), `${file.split(".")[0]}-batches`)
     console.log(`Ingested ${count} images from ${file}`)
   }
 }
