@@ -104,7 +104,7 @@ bun sync [config.json]
 
 The config file needs to be in the `_sync` folder and of the following format:
 
-```json
+```js
 {
     "name": "", // Name for this sync
     "shareToken": "", // Token at the end of a shared folder link
