@@ -65,13 +65,13 @@ Command:
 
 ```bash
 bun webdav /staff-umbrella/digitalcollections/library/magazijn/oclc-72677405-delta/delta/tif \
-    --recursive \
-    --output delta \
-    --filter tif \
-    --regex "\/delta\/tif\/(?<string2>.*?)\/(?<string3>.*?)\/" \
-    --space 29 \
-    --string1 delta \
-    --batches
+> --recursive \
+> --string1 delta \
+> --space 29 \
+> --filter tif \
+> --regex "\"\/delta\/tif\/(?<string2>.*?)\/(?<string3>.*?)\/\"" \
+> --output delta \
+> --batches
 ```
 
 The script will list files for which no matches were found. If values for `string1`, `string2` and `string3` were provided as part of the options, those have been used instead.
@@ -128,6 +128,7 @@ bun convert [input.json|csv]
 - Improve types
 - Register default password in DLCS for shared SURFdrive folders
 - Add notes on batches
+- Update regex argument when [this issue](https://github.com/oven-sh/bun/issues/7667) has been fixed
 
 ---
 
