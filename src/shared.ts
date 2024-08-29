@@ -115,9 +115,8 @@ const postCollection = async (body: any) => {
   return resp
 }
 
-const getPortalUrl = (batchResp) => {
-  const id = batchResp["@id"].match(/batches\/(\w*)/)[1];
-  return `https://portal.dlc.services/batches/${id}`
+export const getBatchId = (batchResp) => {
+  return batchResp["@id"].match(/batches\/(\w*)/)[1];
 }
 
 export const ingestImages = async (body: any, batches: boolean = false) => {
@@ -133,13 +132,13 @@ export const ingestImages = async (body: any, batches: boolean = false) => {
     for (const chunk of chunks) {
       const chunkBody = makeHydraCollection(chunk)
       const batch = await postCollection(chunkBody)
-      console.log(getPortalUrl(batch))
+      console.log("https://portal.dlc.services/batches/" + getBatchId(batch))
       ingestedBatches.push(batch)
     }
     return ingestedBatches
   } else {
     const batch = await postCollection(body)
-    console.log(getPortalUrl(batch))
+    console.log("https://portal.dlc.services/batches/" + getBatchId(batch))
     return [batch]
   }
 }
