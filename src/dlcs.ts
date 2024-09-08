@@ -40,6 +40,9 @@ const { values, positionals } = parseArgs({
     full: {
       type: "boolean",
     },
+    error: {
+      type: "boolean",
+    },
     string1: {
       type: "string",
     },
@@ -189,11 +192,14 @@ if (values["list-images"]) {
         .map((i) => `${i[0]}=${i[1]}`)
         .join("&")
     : "";
-  const resp = await listSpace(space, full, query);
+  let resp = await listSpace(space, full, query);
   if (resp.length) {
+    if (values.error) {
+      resp = resp.filter((member) => member.error);
+    }
     const filename = `dlcs-space-${space}${
       query ? query.replaceAll(/[&=]/g, "-") : ""
-    }`;
+    }${values.error ? "-errors" : ""}`;
     const collection = makeHydraCollection(resp);
     writeFile(collection, filename);
   }
