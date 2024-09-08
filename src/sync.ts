@@ -60,7 +60,8 @@ const compareMetadata = (obj1: any, obj2: any) => {
     const string2 = obj1.string2 === obj2.string2
     const string3 = obj1.string3 === obj2.string3
     const number1 = obj1.number1 === obj2.number1
-    return !string2 || !string3 || !number1
+    const origin = obj1.origin === obj2.origin
+    return !string2 || !string3 || !number1 || !origin
 }
 
 const imagesToBeKept = folderListing.filter(image => dlcsIds.includes(image.id))
@@ -72,9 +73,9 @@ const imagesToBePatched = imagesToBeKept.filter(file => {
 })
 
 console.log(`Found ${folderListing.length} ${folderListing.length === 1 ? "file" : "files"} in SURFdrive folder and ${spaceListing.length} ${spaceListing.length === 1 ? "image" : "images"} in DLCS space ${space}.`)
-console.log(`${imagesToBeIngested.length} images are ingested.`)
-console.log(`${imagesToBePatched.length} images are patched`)
-console.log(`${imagesToBeDeleted.length} images are deleted`)
+console.log(`${imagesToBeIngested.length} ${imagesToBeIngested.length === 1 ? "image is" : "images are"} ingested.`)
+console.log(`${imagesToBePatched.length} ${imagesToBePatched.length === 1 ? "image is" : "images are"} patched`)
+console.log(`${imagesToBeDeleted.length} ${imagesToBeDeleted.length === 1 ? "image is" : "images are"} deleted`)
 
 if (imagesToBeIngested.length) {
     await ingestImages(makeHydraCollection(imagesToBeIngested))

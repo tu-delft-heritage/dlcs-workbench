@@ -149,8 +149,8 @@ export const patchImages = async (collection: any) => {
   const members = collection.member
   for (const member of members) {
     // Empty strings will be patched; undefined properties will not be patched
-    const { string1, string2, string3, number1, number2, number3 } = member
-    const body = { string1, string2, string3, number1, number2, number3 }
+    const { string1, string2, string3, number1, number2, number3, origin } = member
+    const body = { string1, string2, string3, number1, number2, number3, origin }
     const id = member.id
     const space = member.space
     const path = `spaces/${space}/images/${id}`
