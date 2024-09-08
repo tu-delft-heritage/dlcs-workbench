@@ -9,6 +9,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2.0.1
       - run: bun i
-      - run: bun run ./src/sync.ts the-berlage.json
+      - env:
+          DLCS_CUSTOMER_ID: 7
+          DLCS_API_KEY: ${{ secrets.DLCS_API_KEY }}
+        run: bun run ./src/sync.ts the-berlage.json
                 
             
