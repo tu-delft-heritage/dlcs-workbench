@@ -39,7 +39,7 @@ const folderListingPromise = webDavListing(client, path, true);
 const spaceListingPromise = listSpace(space, true, query)
 let [folderListing, spaceListing] = await Promise.all([folderListingPromise, spaceListingPromise])
 
-const mimeTypes = ["image/tiff", "image/jpeg"]
+const mimeTypes = ["image/tiff", "image/jpeg", "image/png"]
 
 // Extract string1, string2, string3 and number1 values
 folderListing = folderListing.filter(i => i.type === "file" && mimeTypes.includes(i.mime)).map((metadata, index) => {
