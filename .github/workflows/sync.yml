@@ -6,7 +6,9 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2.0.1
-      - run: bun sync the-berlage.json
+      - run: bun i
+      - run: bun run ./src/sync.ts the-berlage.json
                 
             
