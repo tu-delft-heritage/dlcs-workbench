@@ -1,0 +1,12 @@
+name: SURFdrive sync
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on:
+  workflow_dispatch:
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: oven-sh/setup-bun@v2.0.1
+      - run: bun sync the-berlage.json
+                
+            
