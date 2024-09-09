@@ -1,14 +1,21 @@
 name: SURFdrive sync
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+run-name: Syncing SURFdrive folder with the-berlage DLCS space
 on:
   workflow_dispatch:
+  schedule:
+  - cron: "0 6-22 * * *"
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2.0.1
-      - run: bun i
-      - run: bun run ./src/sync.ts the-berlage.json
-                
-            
+      - name: Checking out repository
+        uses: actions/checkout@v4
+      - name: Download, install, and setup Bun
+        uses: oven-sh/setup-bun@v2.0.1
+      - name: Install dependencies
+        run: bun i
+      - name: Run sync script
+        env:
+          DLCS_CUSTOMER_ID: 7
+          DLCS_API_KEY: ${{ secrets.DLCS_API_KEY }}
+        run: bun run ./src/sync.ts the-berlage.json
