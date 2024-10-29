@@ -1,5 +1,5 @@
 name: SURFdrive sync
-run-name: Syncing SURFdrive folder with the-berlage DLCS space
+run-name: Syncing SURFdrive folders with DLCS spaces
 on:
   workflow_dispatch:
   schedule:
@@ -18,4 +18,7 @@ jobs:
         env:
           DLCS_CUSTOMER_ID: 7
           DLCS_API_KEY: ${{ secrets.DLCS_API_KEY }}
-        run: bun run ./src/sync.ts the-berlage.json
+        run: |
+          bun run ./src/sync.ts the-berlage.json
+          bun run ./src/sync.ts maatwerk.json
+          
