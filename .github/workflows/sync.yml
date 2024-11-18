@@ -3,7 +3,7 @@ run-name: Syncing SURFdrive folders with DLCS spaces
 on:
   workflow_dispatch:
   schedule:
-  - cron: "0 6-22 * * *"
+    - cron: "0 6-22 * * *"
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -21,4 +21,4 @@ jobs:
         run: |
           bun run ./src/sync.ts the-berlage.json
           bun run ./src/sync.ts maatwerk.json
-          
+          bun run ./src/sync.ts llc.json
