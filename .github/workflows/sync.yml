@@ -23,3 +23,5 @@ jobs:
         run: bun run ./src/sync.ts maatwerk.json
       - name: Run Library Learning Centre Sync
         run: bun run ./src/sync.ts llc.json
+      - name: Run Erfgoed Team sync
+        run: bun run ./src/sync.ts erfgoed.json
