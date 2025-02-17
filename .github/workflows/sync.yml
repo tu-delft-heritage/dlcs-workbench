@@ -17,8 +17,6 @@ jobs:
         uses: oven-sh/setup-bun@v2.0.1
       - name: Install dependencies
         run: bun i
-      - name: Run Berlage Sync
-        run: bun run ./src/sync.ts the-berlage.json
       - name: Run Maatwerk Sync
         run: bun run ./src/sync.ts maatwerk.json
       - name: Run Library Learning Centre Sync
